@@ -4,7 +4,7 @@
 //Required <link rel="stylesheet" href="plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css">
 //Required <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
 //Required <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/4.3.0/jquery.form.min.js" integrity="sha384-qlmct0AOBiA2VPZkMY3+2WqkHtIQ9lSdAsAn5RUJD/3vA5MKDgSGcdmIv4ycVxyn" crossorigin="anonymous"></script>
+
 
 /**********************************************
  * Create element for Chat
@@ -33,7 +33,13 @@ class ChatHTML5 {
 
             },
             error: function (richiesta, stato, errori) {
-                alert("E' evvenuto un errore. Lo stato della chiamata: " + stato);
+                var check = document.getElementById("myModal");
+                if (check)
+                    document.getElementById("myModal").remove();
+                var warning = new modalWarning();
+                this.section = document.getElementById("chatHTML5");
+                this.section.appendChild(warning.get());
+                $("#myModal").modal('show');
             }
         });
         setInterval(updateCardBody, 30000, path, userAuth, asset);
@@ -64,12 +70,11 @@ class cardTitle {
  * start body card with component
  */
 class cardBody {
-    constructor(data, userId, asset) {
 
+    constructor(data, userId, asset) {
         this.cardBody = document.createElement("div");
         this.cardBody.className = "card-body";
         this.cardBody.setAttribute('id', 'messages');
-
         this.divContainer = new messages(data, userId, asset).get();
         this.cardBody.appendChild(this.divContainer);
     }
@@ -107,6 +112,7 @@ class messages {
  * start footer card with component
  */
 class cardFooter {
+
     constructor(url, csrf) {
         this.container = document.createElement("div");
         this.container.className = 'card-footer';
@@ -126,11 +132,12 @@ class cardFooter {
         this.input.className = "form-control";
         this.input.setAttribute('maxlength', 200);
         this.input.type = "text";
+        this.input.setAttribute("id","messageChat");
         this.input.name = "message";
         this.button = document.createElement('button');
         this.button.className = "btn btn-primary";
         this.button.type = "button";
-        this.button.onclick = validator();
+        this.button.setAttribute("onClick","send()");
         this.button.innerHTML = "Invia";
         this.inputGroup.appendChild(this.inputCsrf);
         this.inputGroup.appendChild(this.input);
@@ -151,6 +158,7 @@ class cardFooter {
  * start footer card with component
  */
 class Attachment {
+
     constructor() {
         this.attachment = document.createElement("div");
         this.attachment.className = "btn btn-default btn-file";
@@ -174,6 +182,7 @@ class Attachment {
  * start message
  */
 class message {
+
     constructor(msg, userId, asset) {
         this.container = document.createElement("div");
         if (msg.id == userId)
@@ -218,6 +227,7 @@ class message {
  *
  Function to update the messaage with result of ajax call
  */
+
 function updateCardBody(path, Auth, asset) {
     $.ajax({
         url: path,
@@ -234,36 +244,48 @@ function updateCardBody(path, Auth, asset) {
  *
  Function to check the input
  */
+
 function validator() {
-    let message = document.forms(['chat']['message']).value;
-    let file = document.forms(['chat']['attachment']).value;
-    var filePath = file.value;
-    let extension = /(\.jpg|\.jpeg|\.png|\.pdf|\.tiff|\.psd|\.bmp|\.gif)$/i;
-    let section = document.getElementById("chatHTML5");
 
+    var message = document.getElementById("messageChat");
+    var file = document.getElementById("attachment");
+    var section = document.getElementById('chatHTML5');
+    var check = document.getElementById("send");
+    if (check)
+        document.getElementById("send").remove();
 
-    if (message.length > 200) {
-        let avviso1 = new avviso("Messaggio troppo lungo");
-        section.appendChild(avviso1.get());
-        return false;
-    }
+    if (message.value == ""  && file.value == "") {
 
-    if (file.length >= 1 && !extension.exec(filePath)) {
-        let avviso1 = new avviso("Estensione file non valida");
-        section.appendChild(avviso1.get());
-        file.value = '';
-        return false;
-    }
-
-    if (file.length > 4096) {
-        let avviso1 = new avviso("File d'immagine troppo grande! Inserire inferiore ai 4 MB");
-        section.appendChild(avviso1.get());
-        return false;
-    }
-
-    if (message.length == 0 && file.length == '') {
         let avviso1 = new avviso("Messaggio vuoto! Inserisci un file d'immagine o scrivi un messaggio");
         section.appendChild(avviso1.get());
+        $("#send").modal('show');
+        file.value = "";
+        return false;
+    }
+
+    if (message.value.length > 200) {
+        let avviso1 = new avviso("Messaggio troppo lungo");
+        section.appendChild(avviso1.get());
+        $("#send").modal('show');
+        return false;
+    }
+
+    var filePath = file.value;
+    let extension = /(\.jpg|\.jpeg|\.png|\.pdf|\.tiff|\.psd|\.bmp|\.gif)$/i;
+
+    if (file.value.length >= 1 && !extension.exec(filePath)) {
+        let avviso1 = new avviso("Estensione file non valida");
+        section.appendChild(avviso1.get());
+        $("#send").modal('show');
+        file.value = "";
+        return false;
+    }
+
+    if (file.value.length > 4096) {
+        let avviso1 = new avviso("File d'immagine troppo grande! Inserire inferiore ai 4 MB");
+        section.appendChild(avviso1.get());
+        $("#send").modal('show');
+        file.value = "";
         return false;
     }
 
@@ -276,43 +298,78 @@ function validator() {
  */
 
 function send() {
-    if (validator()) {
-        $("#chat").submit(function (event) {
-            event.preventDefault();
-            let post_url = $(this).attr("action");
-            let request_method = $(this).attr("method");
-            var form_data = $(this).serialize();
-            let showModal = new modal();
-            document.getElementById("chatHTML5").appendChild(showModal.get());
 
-            if ($('#attachment').val()) {
-                $(this).ajaxSubmit({
-                    uploadProgress: function (event, position, total, percentComplete) {
-                        document.getElementById("bar").style.width = percentComplete + "%";
-                    },
-                    success: function () {
-                        document.getElementById("bar").style.width = 100 + "%";
-                    },
-                    error: function () {
-                        let message = new modalWarning();
-                        document.getElementById("chatHTML5").appendChild(message.get());
-                    },
-                });
-            } else {
-                $.ajax({
-                    url: post_url,
-                    type: request_method,
-                    data: form_data,
-                    success: function (data) {
-                        document.getElementById("bar").style.width = "100%";
-                    },
-                    error: function () {
-                        let message = new modalWarning();
-                        document.getElementById("chatHTML5").appendChild(message.get());
-                    },
-                });
-            }
-        }
+    if (validator()) {
+
+        var spinner = new loaderC();
+        document.getElementById("chatHTML5").appendChild(spinner.get());
+        $("#load").modal('show');
+        $("#chat").submit();
+    }
+
+
+}
+/*********************************************************
+ *
+ Spinner Loader
+ */
+
+class loaderC {
+
+    constructor() {
+        this.div = document.createElement("div");
+        this.div.className = "modal";
+        this.div.setAttribute("tabindex","-1");
+        this.div.setAttribute("role","dialog");
+        this.div.setAttribute("id", "load");
+        this.div2 = document.createElement("div");
+        this.div2.className = "modal-dialog";
+        this.div3 = document.createElement("div");
+        this.div3.className = "modal-content bg-info";
+        this.header = new loaderHeader();
+        this.div3.appendChild(this.header.get());
+        this.div2.appendChild(this.div3);
+        this.div.appendChild(this.div2);
+    }
+
+    get() {
+        return this.div;
+    }
+}
+
+class loaderHeader {
+
+    constructor() {
+        this.div = document.createElement("div");
+        this.div.className = "modal-header";
+        this.spinnerdiv = document.createElement("div");
+        this.spinnerdiv.className = "d-flex justify-content-center";
+        this.spinnerdiv2 = document.createElement("div");
+        this.spinnerdiv2.className = "spinner-border";
+        this.spinnerdiv2.setAttribute("role","status");
+        this.spinnerspan = document.createElement("span");
+        this.spinnerspan.className = "sr-only";
+        this.spinnerspan.innerHTML = "Loading...";
+        this.spinnerdiv2.appendChild(this.spinnerspan);
+        this.spinnerdiv.appendChild(this.spinnerdiv2);
+        this.div.appendChild(this.spinnerdiv);
+        this.h5 = document.createElement("h5");
+        this.h5.innerHTML = "&nbsp; &nbsp; &nbsp; &nbsp;  CARICAMENTO IN CORSO";
+        this.div.appendChild(this.h5);
+        this.button = document.createElement("button");
+        this.button.className = "close";
+        this.button.setAttribute("type", "button");
+        this.button.setAttribute("data-dismiss", "modal");
+        this.button.setAttribute("aria-label", "Close");
+        this.span = document.createElement("span");
+        this.span.setAttribute("aria-hidden", "true");
+        this.span.innerHTML = "&times;";
+        this.button.appendChild(this.span);
+        this.div.appendChild(this.button);
+    }
+
+    get() {
+        return this.div;
     }
 }
 
@@ -322,62 +379,19 @@ function send() {
  */
 
 class avviso {
+
     constructor(message) {
         this.div = document.createElement("div");
-        this.div.className = "toasts-top-right fixed";
-        this.div.setAttribute("id", "toastsContainerTopRight");
-        this.div2 = document.createElement("div");
-        this.div2.className = "toast bg-info fade";
-        this.div2.setAttribute("role", "assertive");
-        this.div2.setAttribute("aria - live", "assertive");
-        this.div2.setAttribute("aria - atomic", "true");
-        this.div3.createElement("div");
-        this.div3.className = "toast-header";
-        this.strong = document.createElement("strong");
-        this.strong.className = "mr-auto";
-        this.strong.innerHTML = "ALLERT";
-        this.button = document.createElement("button");
-        this.button.setAttribute("data - dismiss", "toast");
-        this.button.setAttribute("type", "button");
-        this.button.className = "ml-2 mb-1 close";
-        this.button.setAttribute("aria - label", "Close");
-        this.span = document.createElement("span");
-        this.span.setAttribute("aria - hidden", "true");
-        this.span.innerHTML = "x";
-        this.button.appendChild(this.span);
-        this.div3.appendChild(this.strong);
-        this.div3.appendChild(this.button);
-        this.div4 = document.createElement("div");
-        this.div4.className = "toast-body";
-        this.div4.innerHTML = message;
-        this.div2.appendChild(this.div3);
-        this.div2.appendChild(this.div3);
-        this.div.appendChild(this.div2);
-    }
-
-    get() {
-        return this.div;
-    }
-}
-
-/*********************************************************
- *
- Modal updaload view with message
- */
-
-class modal {
-    constructor() {
-        this.div = document.createElement("div");
-        this.div.className = "modal fade";
-        this.div.setAttribute("id", "modal-info");
+        this.div.className = "modal";
+        this.div.setAttribute("tabindex","-1");
+        this.div.setAttribute("role","dialog");
+        this.div.setAttribute("id", "send");
         this.div2 = document.createElement("div");
         this.div2.className = "modal-dialog";
         this.div3 = document.createElement("div");
-        this.div3.className = "modal-content bg-info";
-        this.header = new modalHeader();
-        this.body = new modalBody();
-        this.div3.appendChild(this.header);
-        this.div3.appendChild(this.body);
+        this.div3.className = "modal-content bg-warning";
+        this.header = new avvisoHeader(message);
+        this.div3.appendChild(this.header.get());
         this.div2.appendChild(this.div3);
         this.div.appendChild(this.div2);
     }
@@ -387,13 +401,14 @@ class modal {
     }
 }
 
-class modalHeader {
-    constructor() {
+class avvisoHeader {
+
+    constructor(message) {
         this.div = document.createElement("div");
         this.div.className = "modal-header";
-        this.h4 = document.createElement("h4");
+        this.h4 = document.createElement("h5");
         this.h4.className = "modal-title";
-        this.h4.innerHTML = "Caricamento";
+        this.h4.innerHTML = message;
         this.div.appendChild(this.h4);
         this.button = document.createElement("button");
         this.button.className = "close";
@@ -412,43 +427,27 @@ class modalHeader {
     }
 }
 
-class modalBody {
-    constructor() {
-        this.div = document.createElement("div");
-        this.div.className = "modal-body";
-        this.div2 = document.createElement("div");
-        this.div2.className = "progress progress-sm";
-        this.div3 = document.createElement("div");
-        this.div3.className = "progress-bar bg-primary";
-        this.div3.setAttribute("id", "bar");
-        this.div3.setAttribute("style", "width: 20%");
-        this.div2.appendChild(this.div3);
-        this.div.appendChild(this.div2);
-    }
-
-    get() {
-        return this.div;
-    }
-}
-
 /*********************************************************
  *
  Modal with error
  */
 
 class modalWarning {
+
     constructor() {
         this.div = document.createElement("div");
-        this.div.className = "modal fade";
-        this.div.setAttribute("id", "modal-info");
+        this.div.className = "modal";
+        this.div.setAttribute("tabindex","-1");
+        this.div.setAttribute("role","dialog");
+        this.div.setAttribute("id", "myModal");
         this.div2 = document.createElement("div");
         this.div2.className = "modal-dialog";
         this.div3 = document.createElement("div");
-        this.div3.className = "modal-content bg-warning";
-        this.header = new modalHeader();
-        this.body = new modalBody();
-        this.div3.appendChild(this.header);
-        this.div3.appendChild(this.body);
+        this.div3.className = "modal-content bg-danger";
+        this.header = new modalHeaderWarning();
+        this.body = new modalBodyWarning();
+        this.div3.appendChild(this.header.get());
+        this.div3.appendChild(this.body.get());
         this.div2.appendChild(this.div3);
         this.div.appendChild(this.div2);
     }
@@ -459,12 +458,13 @@ class modalWarning {
 }
 
 class modalHeaderWarning {
+
     constructor() {
         this.div = document.createElement("div");
         this.div.className = "modal-header";
         this.h4 = document.createElement("h4");
         this.h4.className = "modal-title";
-        this.h4.innerHTML = "Caricamento";
+        this.h4.innerHTML = "ERRORE";
         this.div.appendChild(this.h4);
         this.button = document.createElement("button");
         this.button.className = "close";
@@ -484,12 +484,13 @@ class modalHeaderWarning {
 }
 
 class modalBodyWarning {
+
     constructor() {
         this.div = document.createElement("div");
         this.div.className = "modal-body";
         this.p = document.createElement("p");
-        this.p.innerHTML = "ERRORE! RIPROVA";
-        this.div.appendChild(p);
+        this.p.innerHTML = "ERRORE! Ricarica la pagina più tardi";
+        this.div.appendChild(this.p);
 
     }
 
