@@ -31,10 +31,10 @@ class ChatHTML5 {
 
             },
             error: function (richiesta, stato, errori) {
-                var check = document.getElementById("myModal");
+                let check = document.getElementById("myModal");
                 if (check)
                     document.getElementById("myModal").remove();
-                var warning = new ModalWarning();
+                let warning = new ModalWarning();
                 this.section = document.getElementById("chatHTML5");
                 this.section.appendChild(warning.get());
                 $("#myModal").modal('show');
@@ -88,13 +88,13 @@ class Messages {
         this.divContainer = document.createElement("div");
         this.divContainer.className = 'direct-chat-messages';
         this.divContainer.style = 'height: 400px';
-            data.forEach(a => {
-                if (a.pivot.body != "START") {
-                    let msg = new Message(a, userId, asset);
-                    this.divContainer.appendChild(msg.get());
-                }
+        data.forEach(a => {
+            if (a.pivot.body != "START") {
+                let msg = new Message(a, userId, asset);
+                this.divContainer.appendChild(msg.get());
             }
-            );
+        }
+        );
     }
 
     get() {
@@ -214,7 +214,7 @@ class Message {
         this.span1.innerHTML = msg.name_user;
         this.span2.innerHTML = msg.pivot.created_at;
         this.text.innerHTML = msg.pivot.body;
-        if (msg.pivot.path) { 
+        if (msg.pivot.path) {
             this.href.setAttribute("href", this.asset + msg.pivot.path);
             this.text.appendChild(this.br);
             this.text.appendChild(this.href);
@@ -227,14 +227,14 @@ class Message {
  Function to update the messaage with result of ajax call
  */
 
-function updateCardBody(path, Auth, asset) {
+function updateCardBody(path, auth, asset) {
     $.ajax({
         url: path,
         success: function (data) {
             let cardBody = document.getElementById("messages");
             cardBody.lastChild.remove();
-            let M = new Messages(data, Auth, asset).get();
-            cardBody.appendChild(M);
+            let m = new Messages(data, auth, asset).get();
+            cardBody.appendChild(m);
         }
     });
 }
@@ -269,8 +269,8 @@ function validator() {
         return false;
     }
 
-    var filePath = file.value;
-    let extension = /(\.jpg|\.jpeg|\.png|\.pdf|\.tiff|\.psd|\.bmp|\.gif)$/i;
+    const filePath = file.value;
+    const extension = /(\.jpg|\.jpeg|\.png|\.pdf|\.tiff|\.psd|\.bmp|\.gif)$/i;
 
     if (file.value.length >= 1 && !extension.exec(filePath)) {
         let avviso1 = new Avviso("Estensione file non valida");
@@ -300,7 +300,7 @@ function send() {
 
     if (validator()) {
 
-        var spinner = new LoaderC();
+        let spinner = new LoaderC();
         document.getElementById("chatHTML5").appendChild(spinner.get());
         $("#load").modal('show');
         $("#chat").submit();
@@ -490,7 +490,6 @@ class ModalBodyWarning {
         this.p = document.createElement("p");
         this.p.innerHTML = "ERRORE! Ricarica la pagina più tardi";
         this.div.appendChild(this.p);
-
     }
 
     get() {
