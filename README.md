@@ -1,4 +1,4 @@
 # Chat JS
 
 > This is simple prototype of Chat messenger. This work using a Vanilla JavaScript, JQuery and ajax.
-The chat Js is used in anader project. You can see in the action on this <a href="https://github.com/AlessandroS94/corso_21122022/tree/main/Day%2010/code/diemme_java">       Spring Boot project </>
+The chat Js is used in anader project. You can see in the action on this <a href="https://github.com/AlessandroS94/corso_21122022/tree/main/Day%2010/code/diemme_java">Spring Boot project </a>
